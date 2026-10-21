@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>OMG — Fullscreen</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #000; touch-action: manipulation; overscroll-behavior: none;
+  }
+  body {
+    position: fixed; inset: 0; background: #000; color: #fff;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  #stage {
+    position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh;
+    display: grid; place-items: center; overflow: hidden; background: #000;
+  }
+  #letter {
+    display: block; margin: 0; padding: 0;
+    color: #fff; font-family: "Arial Black", Impact, Haettenschweiler, sans-serif;
+    font-weight: 900; line-height: .76; white-space: nowrap;
+    text-align: center; letter-spacing: -.055em;
+    font-size: 150vw; transform: scaleY(1.04);
+    transform-origin: center center;
+    -webkit-text-stroke: 1px #fff;
+  }
+  /* Keep letters intentionally oversized so the glyph fills/crops beyond screen edges. */
+  #letter[data-char="O"] { font-size: 151vw; letter-spacing: -.075em; }
+  #letter[data-char="M"] { font-size: 142vw; letter-spacing: -.105em; }
+  #letter[data-char="G"] { font-size: 151vw; letter-spacing: -.075em; }
+  #stage.pop #letter { animation: pop .13s ease-out; }
+  @keyframes pop {
+    0% { opacity: .55; transform: scale(.96, 1); }
+    100% { opacity: 1; transform: scale(1, 1.04); }
+  }
+  #stage:fullscreen { width: 100%; height: 100%; }
+  #stage:fullscreen #letter { max-height: 100dvh; }
+  #tapTarget { position: absolute; inset: 0; z-index: 2; background: transparent; border: 0; padding: 0; margin: 0; }
+  #hint {
+    position: absolute; z-index: 3; bottom: max(8px, env(safe-area-inset-bottom));
+    left: 0; right: 0; text-align: center; font-size: 9px;
+    letter-spacing: .16em; color: rgba(255,255,255,.14); pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <main id="stage" aria-label="Tap to reveal O, M, G">
+    <div id="letter" aria-live="polite"></div>
+    <button id="tapTarget" aria-label="Tap to reveal the next letter"></button>
+    <div id="hint"></div>
+  </main>
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const letter = document.getElementById('letter');
+  let index = -1;
+  const letters = ['O','M','G'];
+  function next() {
+    index = (index + 1) % letters.length;
+    const ch = letters[index];
+    letter.textContent = ch;
+    letter.dataset.char = ch;
+    stage.classList.remove('pop');
+    void stage.offsetWidth;
+    stage.classList.add('pop');
+    // Request fullscreen from the first user gesture where supported.
+    if (!document.fullscreenElement && stage.requestFullscreen) {
+      stage.requestFullscreen().catch(() => {});
+    }
+  }
+  document.getElementById('tapTarget').addEventListener('pointerdown', e => {
+    e.preventDefault();
+    next();
+  }, {passive:false});
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); next(); }
+  });
+})();
+</script>
+</body>
+</html>
